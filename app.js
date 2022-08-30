@@ -1,124 +1,122 @@
-const APIController = (function() {
-    
-    const clientId = '40aac490b1dc47ac8d817e0b2408e340';
-    const clientSecret = '3fc161b75f9b4f1c9cde7c3ddb0af2c2';
+// const { response } = require('express');
+// const fs = require('fs');
+// const http = require('http');
+// const port = 8888;
 
-    // private methods
-    const _getToken = async () => {
+// const server = http.createServer(function(req, res) {
+//     res.writeHead(200, {'Content-Type': 'text/html'});
+//     fs.readFile('index.html', function(error, data) {
+//         if (error) {
+//             res.writeHead(404)
+//             res.write('Error: File Not Found')
+//         } else {
+//             res.write(data)
+//         }
+//         res.end()
+//     })
+// })
 
-        const result = await fetch('https://accounts.spotify.com/api/token', {
-            method: 'POST',
-            headers: {
-                'Content-Type' : 'application/x-www-form-urlencoded', 
-                'Authorization' : 'Basic ' + btoa(clientId + ':' + clientSecret)
-            },
-            body: 'grant_type=client_credentials'
-        });
+// server.listen(port, function(error) {
+//     if (error) {
+//         console.log('something went wrong', error)
+//     } else {
+//         console.log('server is listening on port ' + port)
+//     }
+// })
 
-        const data = await result.json();
-        return data.access_token;
+
+const express = require('express');
+const app = express();
+app.use(express.static('public'));
+
+
+//spotify web api pasted
+var SpotifyWebApi = require('spotify-web-api-node');
+
+// This file is copied from: https://github.com/thelinmichael/spotify-web-api-node/blob/master/examples/tutorial/00-get-access-token.js
+
+const scopes = [
+    'ugc-image-upload',
+    'user-read-playback-state',
+    'user-modify-playback-state',
+    'user-read-currently-playing',
+    'streaming',
+    'app-remote-control',
+    'user-read-email',
+    'user-read-private',
+    'playlist-read-collaborative',
+    'playlist-modify-public',
+    'playlist-read-private',
+    'playlist-modify-private',
+    'user-library-modify',
+    'user-library-read',
+    'user-top-read',
+    'user-read-playback-position',
+    'user-read-recently-played',
+    'user-follow-read',
+    'user-follow-modify'
+  ];
+  
+// credentials are optional
+var spotifyApi = new SpotifyWebApi({
+    clientId: '40aac490b1dc47ac8d817e0b2408e340',
+    clientSecret: '3fc161b75f9b4f1c9cde7c3ddb0af2c2',
+    redirectUri: 'http://localhost:8888/callback'
+  });
+  
+//   const app = express();
+  
+  app.get('/login', (req, res) => {
+    res.redirect(spotifyApi.createAuthorizeURL(scopes));
+  });
+  
+  app.get('/callback', (req, res) => {
+    const error = req.query.error;
+    const code = req.query.code;
+    const state = req.query.state;
+  
+    if (error) {
+      console.error('Callback Error:', error);
+      res.send(`Callback Error: ${error}`);
+      return;
     }
+  
+    spotifyApi
+      .authorizationCodeGrant(code)
+      .then(data => {
+        const access_token = data.body['access_token'];
+        const refresh_token = data.body['refresh_token'];
+        const expires_in = data.body['expires_in'];
+  
+        spotifyApi.setAccessToken(access_token);
+        spotifyApi.setRefreshToken(refresh_token);
+  
+        console.log('access_token:', access_token);
+        console.log('refresh_token:', refresh_token);
+  
+        console.log(
+          `Sucessfully retreived access token. Expires in ${expires_in} s.`
+        );
+        // res.send('Success! You can now close the window.');
+        res.redirect('/');
+  
+        setInterval(async () => {
+          const data = await spotifyApi.refreshAccessToken();
+          const access_token = data.body['access_token'];
+  
+          console.log('The access token has been refreshed!');
+          console.log('access_token:', access_token);
+          spotifyApi.setAccessToken(access_token);
+        }, expires_in / 2 * 1000);
+      })
+      .catch(error => {
+        console.error('Error getting Tokens:', error);
+        res.send(`Error getting Tokens: ${error}`);
+      });
+  });
 
-    const _getPlaylists = async (token) => {
-
-        const limit = 10;
-        
-        const result = await fetch(`https://api.spotify.com/v1/users/brandonkai/playlists`, {
-            method: 'GET',
-            headers: { 'Authorization' : 'Bearer ' + token}
-        });
-
-        const data = await result.json();
-        return data.items;
-    }
-
-    return {
-        getToken() {
-            return _getToken();
-        },
-        getPlaylists(token) {
-            return _getPlaylists(token);
-        }
-    }
-})();
-
-
-// UI Module
-const UIController = (function() {
-
-    //object to hold references to html selectors
-    const DOMElements = {
-        hfToken: '#hidden_token',
-        divPlaylistList: '.playlist-list',
-        divPlaylistDetail: '.playlist' 
-    }
-
-    //public methods
-    return {
-        //method to get input fields
-        inputField() {
-            return {
-                playlistList: document.querySelector(DOMElements.divPlaylistList)
-            }
-        },
-
-        // need method to create a playlist list group item 
-        createPlaylist(img, title, id) {
-            const html = `
-            <div class="row mb-2 playlist">
-                <div class="col-sm-4 d-flex justify-content-center" id="${id}">
-                    <img src="${img}" class="playlist-thumbnail rounded" alt="...">
-                </div>
-                <div class="col-sm-8 text-center my-auto">
-                    <h5>${title}</h5>
-                </div>
-            </div>
-            `;
-            document.querySelector(DOMElements.divPlaylistList).insertAdjacentHTML('beforeend', html);
-        },
-        
-        storeToken(value) {
-            document.querySelector(DOMElements.hfToken).value = value;
-        },
-
-        getStoredToken() {
-            return {
-                token: document.querySelector(DOMElements.hfToken).value
-            }
-        }
-    }
-
-})();
-
-const APPController = (function(UICtrl, APICtrl) {
-
-    // get input field object ref
-    const DOMInputs = UICtrl.inputField();
-
-    // get playlists on page load
-    const loadPlaylists = async () => {
-        //get the token
-        const token = await APICtrl.getToken();
-        //store the token onto the page
-        UICtrl.storeToken(token);
-        //get the genres
-        const playlists = await APICtrl.getPlaylists(token);
-        //populate our genres select element
-        playlists.forEach(element => UICtrl.createPlaylist(element.images[0].url, element.name, element.id));
-    } 
-
-    return {
-        init() {
-            console.log('App is starting');
-            loadPlaylists();
-        }
-    }
-
-})(UIController, APIController);
-
-// will need to call a method to load the genres on page load
-APPController.init();
-
-
-
-
+  app.listen(8888, () =>
+    console.log(
+      'HTTP Server up. Now go to http://localhost:8888/login in your browser.'
+    )
+  );
