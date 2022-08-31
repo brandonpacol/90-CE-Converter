@@ -103,7 +103,8 @@ const UIController = (function() {
         divPlaylistList: '#playlist-list',
         divPlaylistDetail: '.playlist',
         selectedPlaylistText: '#selected-playlist-text',
-        welcomeUser: '#welcome-user'
+        welcomeUser: '#welcome-user',
+        convertButton: '#convert-button'
     }
 
     //public methods
@@ -115,7 +116,8 @@ const UIController = (function() {
                 login: document.querySelector(DOMElements.loginButton),
                 playlists: document.querySelector(DOMElements.divPlaylistList),
                 selectedPlaylistText: document.querySelector(DOMElements.selectedPlaylistText),
-                welcomeUser: document.querySelector(DOMElements.welcomeUser)
+                welcomeUser: document.querySelector(DOMElements.welcomeUser),
+                convertButton: document.querySelector(DOMElements.convertButton)
             }
         },
 
@@ -135,7 +137,17 @@ const UIController = (function() {
         },
 
         editSelectedPlaylistText(name) {
-            document.querySelector(DOMElements.selectedPlaylistText).innerHTML = name + ' is selected';
+            document.querySelector(DOMElements.selectedPlaylistText).innerHTML = '"' + name + '" is selected.';
+        },
+
+        disableConvertButton() {
+            document.querySelector(DOMElements.convertButton).disabled = true;
+            document.querySelector(DOMElements.convertButton).innerHTML = 'Converting <div class="spinner-border spinner-border-sm" role="status"></div>';
+        },
+
+        enableConvertButton() {
+            document.querySelector(DOMElements.convertButton).disabled = false;
+            document.querySelector(DOMElements.convertButton).innerHTML = 'Convert';
         },
 
         editWelcomeUser(name) {
@@ -161,20 +173,22 @@ const APPController = (function(UICtrl, APICtrl) {
     const DOMInputs = UICtrl.inputField();
 
     // get playlists on page load
-    const loadPlaylists = async () => {
+    const loadInitialPage = async () => {
+        // gets auth code
         const code = await getCode();
-        //get the token
+        //get the access token from auth code
         const token = await APICtrl.getToken2(code);
         //store the token onto the page
         UICtrl.storeToken(token);
 
-        //change username
+        // gets user
         const user = await APICtrl.getUser(token);
+        // changes welcome username
         UICtrl.editWelcomeUser(user.display_name);
 
-        //get the genres
+        //get the playlists
         const playlists = await APICtrl.getPlaylists(token);
-        //populate our genres select element
+        //populate our playlist list
         playlists.forEach(element => UICtrl.createPlaylist(element.images[0].url, element.name, element.id));
     } 
 
@@ -219,6 +233,12 @@ const APPController = (function(UICtrl, APICtrl) {
         UICtrl.editSelectedPlaylistText(playlistName);
     })
 
+    DOMInputs.convertButton.addEventListener('click', async () => {
+        UICtrl.disableConvertButton();
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        UICtrl.enableConvertButton();
+    })
+
     const getPlaylistName = async (playlistEndpoint) => {
         token = UICtrl.getStoredToken().token;
         console.log('get playlist name' + token)
@@ -236,7 +256,7 @@ const APPController = (function(UICtrl, APICtrl) {
             //     loadPlaylists();
             // }
             if (window.location.search.length > 0) {
-                loadPlaylists();
+                loadInitialPage();
             }
             console.log('App is starting');
         }
