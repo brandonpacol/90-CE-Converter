@@ -2,6 +2,7 @@ const APIController = (function() {
     
     const clientId = '***REMOVED***';
     const clientSecret = '***REMOVED***';
+    const redirectUri = 'http://127.0.0.1:5500/index.html';
 
     // private methods
     const _getToken = async () => {
@@ -17,6 +18,10 @@ const APIController = (function() {
 
         const data = await result.json();
         return data.access_token;
+    }
+
+    const _getToken2 = async (code) => {
+        return await code;
     }
 
     const _getPlaylists = async (token) => {
@@ -35,6 +40,9 @@ const APIController = (function() {
     return {
         getToken() {
             return _getToken();
+        },
+        getToken2() {
+            return _getToken2(code);
         },
         getPlaylists(token) {
             return _getPlaylists(token);
@@ -58,7 +66,8 @@ const UIController = (function() {
         //method to get input fields
         inputField() {
             return {
-                playlistList: document.querySelector(DOMElements.divPlaylistList)
+                playlistList: document.querySelector(DOMElements.divPlaylistList),
+                login: document.querySelector(DOMElements.loginButton)
             }
         },
 
@@ -99,6 +108,7 @@ const APPController = (function(UICtrl, APICtrl) {
     const loadPlaylists = async () => {
         //get the token
         const token = await APICtrl.getToken();
+        // const token = localStorage.getItem('access_token');
         //store the token onto the page
         UICtrl.storeToken(token);
         //get the genres
@@ -107,8 +117,35 @@ const APPController = (function(UICtrl, APICtrl) {
         playlists.forEach(element => UICtrl.createPlaylist(element.images[0].url, element.name, element.id));
     } 
 
+    const handleRedirect = async () => {
+        const code = await getCode();
+        console.log(code);
+        const token = await APICtrl.getToken2(code);
+        console.log(token);
+    }
+
+    const getCode = async () => {
+        let code = null;
+        const queryString = window.location.search;
+        if (queryString.length > 0) {
+            const urlParams = new URLSearchParams(queryString);
+            code = urlParams.get('code')
+        }
+        return code;
+    }
+
     return {
         init() {
+            // access_token = localStorage.getItem('access_token')
+            // if (access_token == null) {
+            //     window.location.replace("login.html");
+            // } else {
+            //     console.log('App is starting');
+            //     loadPlaylists();
+            // }
+            if (window.location.search.length > 0) {
+                handleRedirect();
+            }
             console.log('App is starting');
             loadPlaylists();
         }
