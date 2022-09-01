@@ -43,7 +43,7 @@ const APIController = (function() {
 
         const limit = 10;
         
-        const result = await fetch(`https://api.spotify.com/v1/users/brandonkai/playlists`, {
+        const result = await fetch(`https://api.spotify.com/v1/me/playlists`, {
             method: 'GET',
             headers: { 'Authorization' : 'Bearer ' + token}
         });
@@ -74,6 +74,26 @@ const APIController = (function() {
         return data;
     }
 
+    const _createPlaylist = async (token, playlistName) => {
+
+        const result = await fetch(`https://api.spotify.com/v1/me/playlists`, {
+            method: 'POST',
+            headers: { 
+                'Authorization' : 'Bearer ' + token
+            },
+            body: JSON.stringify({
+                name : playlistName + ' (90% Clean)',
+                description : 'Created with 90 CE Converter',
+                public : false
+            })
+        });
+
+        const data = await result.json();
+        console.log('SUCCESSFULLY CREATED PLAYLIST WITH ID: ' + data.id);
+        return data;
+
+    }
+
     return {
         getToken() {
             return _getToken();
@@ -85,10 +105,13 @@ const APIController = (function() {
             return _getPlaylists(token);
         },
         getPlaylist(token, playlistId) {
-            return _getPlaylist(token, playlistId)
+            return _getPlaylist(token, playlistId);
+        },
+        createPlaylist(token, name) {
+            return _createPlaylist(token, name);
         },
         getUser(token) {
-            return _getUser(token)
+            return _getUser(token);
         }
     }
 })();
@@ -245,6 +268,19 @@ const APPController = (function(UICtrl, APICtrl) {
 
     DOMInputs.convertButton.addEventListener('click', async () => {
         UICtrl.disableConvertButton();
+        
+        // get token
+        token = UICtrl.getStoredToken().token;
+
+        // create new playlist bassed on selected playlist name
+        playlistId = localStorage.getItem('selected_playlist_id');
+        playlistName = UICtrl.getPlaylistName('p' + playlistId);
+        APICtrl.createPlaylist(token, playlistName);
+
+        // get songs from selected playlist
+
+
+
         await new Promise(resolve => setTimeout(resolve, 1000));
         UICtrl.enableConvertButton();
     })
