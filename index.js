@@ -94,6 +94,18 @@ const APIController = (function() {
 
     }
 
+    const _getSongs = async (token, playlistId) => {
+
+        const result = await fetch(`https://api.spotify.com/v1/playlists/${playlistId}/tracks`, {
+            method: 'GET',
+            headers: { 'Authorization' : 'Bearer ' + token }
+        });
+
+        const data = await result.json();
+        return data.items;
+
+    }
+
     return {
         getToken() {
             return _getToken();
@@ -109,6 +121,9 @@ const APIController = (function() {
         },
         createPlaylist(token, name) {
             return _createPlaylist(token, name);
+        },
+        getSongs(token, playlistId) {
+            return _getSongs(token, playlistId)
         },
         getUser(token) {
             return _getUser(token);
@@ -272,14 +287,19 @@ const APPController = (function(UICtrl, APICtrl) {
         // get token
         token = UICtrl.getStoredToken().token;
 
-        // create new playlist bassed on selected playlist name
+        // // create new playlist bassed on selected playlist name
         playlistId = localStorage.getItem('selected_playlist_id');
         playlistName = UICtrl.getPlaylistName('p' + playlistId);
-        APICtrl.createPlaylist(token, playlistName);
+        // const newPlaylist = await APICtrl.createPlaylist(token, playlistName);
 
         // get songs from selected playlist
-
-
+        search_keywords = [];
+        const songs = await APICtrl.getSongs(token, playlistId);
+        songs.forEach(element => search_keywords.push({
+            artist : element.track.artists[0].name, 
+            track : element.track.name, 
+            id : element.track.id}));
+        console.log(search_keywords);
 
         await new Promise(resolve => setTimeout(resolve, 1000));
         UICtrl.enableConvertButton();
