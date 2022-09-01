@@ -103,8 +103,9 @@ const UIController = (function() {
         divPlaylistList: '#playlist-list',
         divPlaylistDetail: '.playlist',
         selectedPlaylistText: '#selected-playlist-text',
+        playlistName: '.playlist-name',
         welcomeUser: '#welcome-user',
-        convertButton: '#convert-button'
+        convertButton: '#convert-button',
     }
 
     //public methods
@@ -116,6 +117,7 @@ const UIController = (function() {
                 login: document.querySelector(DOMElements.loginButton),
                 playlists: document.querySelector(DOMElements.divPlaylistList),
                 selectedPlaylistText: document.querySelector(DOMElements.selectedPlaylistText),
+                playlistName: document.querySelector(DOMElements.playlistName),
                 welcomeUser: document.querySelector(DOMElements.welcomeUser),
                 convertButton: document.querySelector(DOMElements.convertButton)
             }
@@ -124,12 +126,12 @@ const UIController = (function() {
         // need method to create a playlist list group item 
         createPlaylist(img, title, id) {
             const html = `
-            <div class="row mb-2 playlist"  id="${id}">
+            <div class="row mb-2 playlist"  id="p${id}">
                 <div class="col-sm-4 d-flex justify-content-center">
                     <img src="${img}" class="playlist-thumbnail rounded" alt="...">
                 </div>
                 <div class="col-sm-8 text-center my-auto">
-                    <h5>${title}</h5>
+                    <h5 class="playlist-name">${title}</h5>
                 </div>
             </div>
             `;
@@ -152,6 +154,10 @@ const UIController = (function() {
 
         editWelcomeUser(name) {
             document.querySelector(DOMElements.welcomeUser).innerHTML = 'Welcome, ' + name + '!';
+        },
+
+        getPlaylistName(playlist_id) {
+            return document.querySelector('#'+playlist_id).querySelector(DOMElements.playlistName).textContent;
         },
         
         storeToken(value) {
@@ -226,10 +232,14 @@ const APPController = (function(UICtrl, APICtrl) {
         }
 
         if (playlistEndpoint != null) {
-            playlistName = await getPlaylistName(playlistEndpoint)
+            // playlistName = await getPlaylistName(playlistEndpoint);
+            playlistName = UICtrl.getPlaylistName(playlistEndpoint);
+            playlistEndpoint = playlistEndpoint.slice(1);
         }
 
         console.log("clicked on " + playlistName);
+        console.log('playlist id is ' + playlistEndpoint);
+        localStorage.setItem('selected_playlist_id', playlistEndpoint);
         UICtrl.editSelectedPlaylistText(playlistName);
     })
 
@@ -239,12 +249,12 @@ const APPController = (function(UICtrl, APICtrl) {
         UICtrl.enableConvertButton();
     })
 
-    const getPlaylistName = async (playlistEndpoint) => {
-        token = UICtrl.getStoredToken().token;
-        console.log('get playlist name' + token)
-        const playlist = await APICtrl.getPlaylist(token, playlistEndpoint);
-        return playlist.name;
-    }
+    // const getPlaylistName = async (playlistEndpoint) => {
+    //     token = UICtrl.getStoredToken().token;
+    //     console.log('get playlist name' + token)
+    //     const playlist = await APICtrl.getPlaylist(token, playlistEndpoint);
+    //     return playlist.name;
+    // }
 
     return {
         init() {
