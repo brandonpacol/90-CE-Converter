@@ -333,29 +333,29 @@ const APPController = (function(UICtrl, APICtrl) {
         console.log(search_keywords);
 
         // if songs are explicit, search for clean song
-        // const search_results = [];
-        // search_keywords.forEach(element => {
-        //     if (element.explicit) {
-        //         search_results = await APICtrl.searchSong(token, element.artist, element.track, element.uri);
-        //         console.log(search_results);
-        //     }
-        // });
-
-        // let song1 = search_keywords[1];
-        // console.log(song1);
-
+        let uris_to_add = [];
         for (let i = 0; i < search_keywords.length; i++) {
             if (search_keywords[i].explicit) {
+                let found = false;
                 const search_results = await APICtrl.searchSong(token, search_keywords[i].artist, search_keywords[i].track, search_keywords[i].uri);
-                search_results.forEach(result => {
+                for (let j = 0; j < search_results.length; j++) {
                     console.log('Searching for a clean version of ' + search_keywords[i].track + '...');
-                    if (!result.explicit && search_keywords[i].artist == result.artists[0].name) {
+                    if (!search_results[j].explicit && search_keywords[i].artist == search_results[j].artists[0].name) {
                         console.log('Clean version of ' + search_keywords[i].track + ' added!');
-                        return result.uri;
+                        uris_to_add.push(search_results[j].name);
+                        found = true;
+                        break;
                     }
-                })
+                }
+                if (!found) {
+                    console.log('No clean version found, added explicit version of ' + search_keywords[i].track + '.');
+                    uris_to_add.push(search_keywords[i].track);
+                }
+            } else {
+                uris_to_add.push(search_keywords[i].track);
             }
         }
+        console.log(uris_to_add);
 
         await new Promise(resolve => setTimeout(resolve, 1000));
         UICtrl.enableConvertButton();
