@@ -106,6 +106,32 @@ const APIController = (function() {
 
     }
 
+    const _searchSong = async (token, artist, track, uri) => {
+        query = encodeURIComponent(artist + ' ' + track);
+
+        const result = await fetch(`https://api.spotify.com/v1/search?q=${query}&type=track&limit=5`, {
+            method: 'GET',
+            headers: { 'Authorization' : 'Bearer ' + token }
+        });
+
+        const data = await result.json();
+        // console.log('data: ' + data);
+        // const search_results = await data.tracks.items;
+        return data.tracks.items;
+        // console.log('search results: ' + search_results);
+        
+        // search_results.forEach(result => {
+        //     console.log('Searching for a clean version of ' + track + '...');
+        //     if (!result.explicit && artist == result.artists[0].name) {
+        //         console.log('Clean version of ' + track + ' added!');
+        //         return result.uri;
+        //     }
+        // })
+        // console.log('No clean version found, added explicit version of ' + track + '.');
+        // return uri;
+
+    }
+
     return {
         getToken() {
             return _getToken();
@@ -124,6 +150,9 @@ const APIController = (function() {
         },
         getSongs(token, playlistId) {
             return _getSongs(token, playlistId)
+        },
+        searchSong(token, artist, track, uri) {
+            return _searchSong(token, artist, track, uri);
         },
         getUser(token) {
             return _getUser(token);
@@ -298,8 +327,35 @@ const APPController = (function(UICtrl, APICtrl) {
         songs.forEach(element => search_keywords.push({
             artist : element.track.artists[0].name, 
             track : element.track.name, 
+            explicit : element.track.explicit,
+            uri : element.track.uri,
             id : element.track.id}));
         console.log(search_keywords);
+
+        // if songs are explicit, search for clean song
+        // const search_results = [];
+        // search_keywords.forEach(element => {
+        //     if (element.explicit) {
+        //         search_results = await APICtrl.searchSong(token, element.artist, element.track, element.uri);
+        //         console.log(search_results);
+        //     }
+        // });
+
+        // let song1 = search_keywords[1];
+        // console.log(song1);
+
+        for (let i = 0; i < search_keywords.length; i++) {
+            if (search_keywords[i].explicit) {
+                const search_results = await APICtrl.searchSong(token, search_keywords[i].artist, search_keywords[i].track, search_keywords[i].uri);
+                search_results.forEach(result => {
+                    console.log('Searching for a clean version of ' + search_keywords[i].track + '...');
+                    if (!result.explicit && search_keywords[i].artist == result.artists[0].name) {
+                        console.log('Clean version of ' + search_keywords[i].track + ' added!');
+                        return result.uri;
+                    }
+                })
+            }
+        }
 
         await new Promise(resolve => setTimeout(resolve, 1000));
         UICtrl.enableConvertButton();
