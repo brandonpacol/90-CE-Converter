@@ -41,8 +41,6 @@ const APIController = (function() {
     }
 
     const _getPlaylists = async (token) => {
-
-        const limit = 10;
         
         const result = await fetch(`https://api.spotify.com/v1/me/playlists`, {
             method: 'GET',
@@ -50,7 +48,34 @@ const APIController = (function() {
         });
 
         const data = await result.json();
-        return data.items;
+        playlists = data.items;
+        // console.log(typeof(playlists));
+        // console.log(data.next);
+        if (data.next == null) {
+            return playlists;
+        } else {
+            concatPlaylist = playlists.concat(await _getMorePlaylists(token, data.next));
+            return concatPlaylist;
+        }
+    }
+
+    const _getMorePlaylists = async (token, apiCall) => {
+
+        console.log('ran get more playlists')
+        const result = await fetch(`${apiCall}`, {
+            method: 'GET',
+            headers: { 'Authorization' : 'Bearer ' + token}
+        });
+
+        const data = await result.json();
+        playlists = data.items;
+        if (data.next == null) {
+            return playlists;
+        } else {
+            concatPlaylist = playlists.concat(await _getMorePlaylists(token, data.next));
+            return concatPlaylist;
+        }
+
     }
 
     const _getPlaylist = async (token, playlistId) => {
@@ -298,8 +323,15 @@ const APPController = (function(UICtrl, APICtrl) {
 
         //get the playlists
         const playlists = await APICtrl.getPlaylists(token);
+        console.log(playlists);
         //populate our playlist list
-        playlists.forEach(element => UICtrl.createPlaylist(element.images[0].url, element.name, element.id));
+        playlists.forEach(element => {
+            if (element.images.length > 0) {
+                UICtrl.createPlaylist(element.images[0].url, element.name, element.id);
+            } else {
+                UICtrl.createPlaylist('https://m.media-amazon.com/images/I/71pxGj4RoVS._AC_SL1200_.jpg', element.name, element.id);
+            }
+        });
     } 
 
     // const handleRedirect = async () => {
