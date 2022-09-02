@@ -49,8 +49,6 @@ const APIController = (function() {
 
         const data = await result.json();
         playlists = data.items;
-        // console.log(typeof(playlists));
-        // console.log(data.next);
         if (data.next == null) {
             return playlists;
         } else {
@@ -128,12 +126,19 @@ const APIController = (function() {
         });
 
         const data = await result.json();
-        return data.items;
+        playlists = data.items;
+        if (data.next == null) {
+            return playlists;
+        } else {
+            concatPlaylist = playlists.concat(await _getMorePlaylists(token, data.next));
+            return concatPlaylist;
+        }
 
     }
 
     const _searchSong = async (token, artist, track, uri) => {
-        query = encodeURIComponent(artist + ' ' + track);
+        search_string = artist + ' ' + track;
+        query = encodeURIComponent(search_string.slice(0,100));
 
         const result = await fetch(`https://api.spotify.com/v1/search?q=${query}&type=track&limit=5`, {
             method: 'GET',
@@ -408,6 +413,7 @@ const APPController = (function(UICtrl, APICtrl) {
         // if songs are explicit, search for clean song
         let uris_to_add = [];
         for (let i = 0; i < search_keywords.length; i++) {
+            console.log('Searching for song '+ (i+1));
             if (search_keywords[i].explicit) {
                 let found = false;
                 const search_results = await APICtrl.searchSong(token, search_keywords[i].artist, search_keywords[i].track, search_keywords[i].uri);
@@ -432,7 +438,15 @@ const APPController = (function(UICtrl, APICtrl) {
         console.log(uris_to_add);
 
         // add songs to created playlist
-        await APICtrl.addSongsToPlaylist(token, newPlaylist.id, uris_to_add);
+        let total_songs = uris_to_add.length;
+        for (let i = 0; i < uris_to_add.length; i+=100) {
+            if (total_songs > 100) {
+                await APICtrl.addSongsToPlaylist(token, newPlaylist.id, uris_to_add.slice(i, i+99));
+                total_songs = total_songs-100;
+            } else {
+                await APICtrl.addSongsToPlaylist(token, newPlaylist.id, uris_to_add.slice(i, i+total_songs));
+            }
+        }
 
         // await new Promise(resolve => setTimeout(resolve, 1000));
         UICtrl.editHasBeenConvertedText(playlistName);
