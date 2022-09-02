@@ -36,6 +36,7 @@ const APIController = (function() {
         });
 
         const data = await result.json();
+        localStorage.setItem('access_token', data.access_token);
         return data.access_token;
     }
 
@@ -115,20 +116,23 @@ const APIController = (function() {
         });
 
         const data = await result.json();
-        // console.log('data: ' + data);
-        // const search_results = await data.tracks.items;
         return data.tracks.items;
-        // console.log('search results: ' + search_results);
-        
-        // search_results.forEach(result => {
-        //     console.log('Searching for a clean version of ' + track + '...');
-        //     if (!result.explicit && artist == result.artists[0].name) {
-        //         console.log('Clean version of ' + track + ' added!');
-        //         return result.uri;
-        //     }
-        // })
-        // console.log('No clean version found, added explicit version of ' + track + '.');
-        // return uri;
+
+    }
+
+    const _addSongsToPlaylist = async (token, playlistId, uris_to_add) => {
+
+        const result = await fetch(`https://api.spotify.com/v1/playlists/${playlistId}/tracks`, {
+            method: 'POST',
+            headers: { 
+                'Authorization' : 'Bearer ' + token
+            },
+            body: JSON.stringify({
+                uris : uris_to_add
+            })
+        });
+
+        console.log('SUCCESSFULLY ADDED SONGS TO PLAYLIST');
 
     }
 
@@ -153,6 +157,9 @@ const APIController = (function() {
         },
         searchSong(token, artist, track, uri) {
             return _searchSong(token, artist, track, uri);
+        },
+        addSongsToPlaylist(token, playlistId, uris_to_add) {
+            return _addSongsToPlaylist(token, playlistId, uris_to_add);
         },
         getUser(token) {
             return _getUser(token);
@@ -319,7 +326,7 @@ const APPController = (function(UICtrl, APICtrl) {
         // // create new playlist bassed on selected playlist name
         playlistId = localStorage.getItem('selected_playlist_id');
         playlistName = UICtrl.getPlaylistName('p' + playlistId);
-        // const newPlaylist = await APICtrl.createPlaylist(token, playlistName);
+        const newPlaylist = await APICtrl.createPlaylist(token, playlistName);
 
         // get songs from selected playlist
         search_keywords = [];
@@ -342,31 +349,27 @@ const APPController = (function(UICtrl, APICtrl) {
                     console.log('Searching for a clean version of ' + search_keywords[i].track + '...');
                     if (!search_results[j].explicit && search_keywords[i].artist == search_results[j].artists[0].name) {
                         console.log('Clean version of ' + search_keywords[i].track + ' added!');
-                        uris_to_add.push(search_results[j].name);
+                        uris_to_add.push(search_results[j].uri);
                         found = true;
                         break;
                     }
                 }
                 if (!found) {
                     console.log('No clean version found, added explicit version of ' + search_keywords[i].track + '.');
-                    uris_to_add.push(search_keywords[i].track);
+                    uris_to_add.push(search_keywords[i].uri);
                 }
             } else {
-                uris_to_add.push(search_keywords[i].track);
+                uris_to_add.push(search_keywords[i].uri);
             }
         }
         console.log(uris_to_add);
 
+        // add songs to created playlist
+        await APICtrl.addSongsToPlaylist(token, newPlaylist.id, uris_to_add);
+
         await new Promise(resolve => setTimeout(resolve, 1000));
         UICtrl.enableConvertButton();
     })
-
-    // const getPlaylistName = async (playlistEndpoint) => {
-    //     token = UICtrl.getStoredToken().token;
-    //     console.log('get playlist name' + token)
-    //     const playlist = await APICtrl.getPlaylist(token, playlistEndpoint);
-    //     return playlist.name;
-    // }
 
     return {
         init() {
