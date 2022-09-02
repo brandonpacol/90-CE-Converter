@@ -180,6 +180,8 @@ const UIController = (function() {
         playlistName: '.playlist-name',
         welcomeUser: '#welcome-user',
         convertButton: '#convert-button',
+        loadingBar: '#loading-bar',
+        loadingBarDiv: '#loading-bar-div'
     }
 
     //public methods
@@ -193,7 +195,9 @@ const UIController = (function() {
                 selectedPlaylistText: document.querySelector(DOMElements.selectedPlaylistText),
                 playlistName: document.querySelector(DOMElements.playlistName),
                 welcomeUser: document.querySelector(DOMElements.welcomeUser),
-                convertButton: document.querySelector(DOMElements.convertButton)
+                convertButton: document.querySelector(DOMElements.convertButton),
+                loadingBar: document.querySelector(DOMElements.loadingBar),
+                loadingBarDiv: document.querySelector(DOMElements.loadingBarDiv)
             }
         },
 
@@ -216,6 +220,14 @@ const UIController = (function() {
             document.querySelector(DOMElements.selectedPlaylistText).innerHTML = '"' + name + '" is selected.';
         },
 
+        editIsConvertingText(name) {
+            document.querySelector(DOMElements.selectedPlaylistText).innerHTML = '"' + name + '" is converting.';
+        },
+
+        editHasBeenConvertedText(name) {
+            document.querySelector(DOMElements.selectedPlaylistText).innerHTML = '"' + name + '"has been converted.';
+        },
+
         disableConvertButton() {
             document.querySelector(DOMElements.convertButton).disabled = true;
             document.querySelector(DOMElements.convertButton).innerHTML = 'Converting <div class="spinner-border spinner-border-sm" role="status"></div>';
@@ -232,6 +244,18 @@ const UIController = (function() {
 
         getPlaylistName(playlist_id) {
             return document.querySelector('#'+playlist_id).querySelector(DOMElements.playlistName).textContent;
+        },
+
+        updateLoadingBar(percent) {
+            document.querySelector(DOMElements.loadingBar).style = 'width: ' + percent + '%';
+        },
+
+        showLoadingBar() {
+            document.querySelector(DOMElements.loadingBarDiv).style = '';
+        },
+
+        hideLoadingBar() {
+            document.querySelector(DOMElements.loadingBarDiv).style = 'display : none;';
         },
         
         storeToken(value) {
@@ -254,12 +278,18 @@ const APPController = (function(UICtrl, APICtrl) {
 
     // get playlists on page load
     const loadInitialPage = async () => {
-        // gets auth code
-        const code = await getCode();
-        //get the access token from auth code
-        const token = await APICtrl.getToken2(code);
-        //store the token onto the page
-        UICtrl.storeToken(token);
+        token = 'blank';
+        if (localStorage.getItem('access_token') == 'undefined') {
+            // gets auth code
+            const code = await getCode();
+            //get the access token from auth code
+            token = await APICtrl.getToken2(code);
+            //store the token onto the page
+            UICtrl.storeToken(token);
+        } else {
+            token = localStorage.getItem('access_token');
+            UICtrl.storeToken(token);
+        }
 
         // gets user
         const user = await APICtrl.getUser(token);
@@ -319,9 +349,13 @@ const APPController = (function(UICtrl, APICtrl) {
 
     DOMInputs.convertButton.addEventListener('click', async () => {
         UICtrl.disableConvertButton();
-        
+        UICtrl.showLoadingBar();
+
         // get token
         token = UICtrl.getStoredToken().token;
+
+        playlistName = UICtrl.getPlaylistName('p' + localStorage.getItem('selected_playlist_id'));
+        UICtrl.editIsConvertingText(playlistName);        
 
         // // create new playlist bassed on selected playlist name
         playlistId = localStorage.getItem('selected_playlist_id');
@@ -361,13 +395,17 @@ const APPController = (function(UICtrl, APICtrl) {
             } else {
                 uris_to_add.push(search_keywords[i].uri);
             }
+            UICtrl.updateLoadingBar((i/search_keywords.length)*100);
         }
         console.log(uris_to_add);
 
         // add songs to created playlist
         await APICtrl.addSongsToPlaylist(token, newPlaylist.id, uris_to_add);
 
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        // await new Promise(resolve => setTimeout(resolve, 1000));
+        UICtrl.editHasBeenConvertedText(playlistName);
+        UICtrl.hideLoadingBar();
+        UICtrl.updateLoadingBar(0);
         UICtrl.enableConvertButton();
     })
 
