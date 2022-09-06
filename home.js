@@ -59,7 +59,6 @@ const APIController = (function() {
 
     const _getMorePlaylists = async (token, apiCall) => {
 
-        console.log('ran get more playlists')
         const result = await fetch(`${apiCall}`, {
             method: 'GET',
             headers: { 'Authorization' : 'Bearer ' + token}
@@ -316,35 +315,20 @@ const APPController = (function(UICtrl, APICtrl) {
 
     // get playlists on page load
     const loadInitialPage = async () => {
-        token = 'blank token';
-        code = 'blank code';
-        // if (localStorage.getItem('access_token') == 'undefined') {
-        //     // gets auth code
-        //     const code = await getCode();
-        //     //get the access token from auth code
-        //     token = await APICtrl.getToken2(code);
-        //     //store the token onto the page
-        //     UICtrl.storeToken(token);
-        // } else {
-        //     token = localStorage.getItem('access_token');
-        //     UICtrl.storeToken(token);
-        // }
+        let token = 'blank token';
+        let code = 'blank code';
 
         if (localStorage.getItem('auth_code') == 'undefined') {
-            console.log('ran if auth code');
             code = await getCode();
             window.history.pushState("", "", 'http://127.0.0.1:5500/home.html'); // remove param from url
         } else {
-            console.log('ran else auth code')
             code = localStorage.getItem('auth_code');
         }
 
         if (localStorage.getItem('access_token') == 'undefined') {
-            console.log('ran if token');
             token = await APICtrl.getToken2(code);
             UICtrl.storeToken(token);
         } else {
-            console.log('ran else token');
             token = localStorage.getItem('access_token');
             UICtrl.storeToken(token);
         }
@@ -356,7 +340,7 @@ const APPController = (function(UICtrl, APICtrl) {
 
         //get the playlists
         const playlists = await APICtrl.getPlaylists(token);
-        console.log(playlists);
+
         //populate our playlist list
         playlists.forEach(element => {
             if (element.images.length > 0) {
@@ -366,14 +350,6 @@ const APPController = (function(UICtrl, APICtrl) {
             }
         });
     } 
-
-    // const handleRedirect = async () => {
-    //     const code = await getCode();
-    //     // console.log(code);
-    //     const token = await APICtrl.getToken2(code);
-    //     // console.log(token);
-    //     localStorage.setItem('access_token', token);
-    // }
 
     const getCode = async () => {
         let code = null;
@@ -402,7 +378,6 @@ const APPController = (function(UICtrl, APICtrl) {
         }
 
         if (playlistEndpoint != null) {
-            // playlistName = await getPlaylistName(playlistEndpoint);
             playlistName = UICtrl.getPlaylistName(playlistEndpoint);
             playlistEndpoint = playlistEndpoint.slice(1);
         }
@@ -431,7 +406,7 @@ const APPController = (function(UICtrl, APICtrl) {
         playlistName = UICtrl.getPlaylistName('p' + localStorage.getItem('selected_playlist_id'));
         UICtrl.editIsConvertingText(playlistName);        
 
-        // // create new playlist bassed on selected playlist name
+        // create new playlist bassed on selected playlist name
         playlistId = localStorage.getItem('selected_playlist_id');
         playlistName = UICtrl.getPlaylistName('p' + playlistId);
         const newPlaylist = await APICtrl.createPlaylist(token, playlistName);
@@ -445,7 +420,7 @@ const APPController = (function(UICtrl, APICtrl) {
             explicit : element.track.explicit,
             uri : element.track.uri,
             id : element.track.id}));
-        console.log(search_keywords);
+
 
         // if songs are explicit, search for clean song
         let keepExplicit = UICtrl.getExplicit();
@@ -473,7 +448,6 @@ const APPController = (function(UICtrl, APICtrl) {
             }
             UICtrl.updateLoadingBar((i/search_keywords.length)*100);
         }
-        console.log(uris_to_add);
 
         // add songs to created playlist
         let total_songs = uris_to_add.length;
@@ -486,7 +460,6 @@ const APPController = (function(UICtrl, APICtrl) {
             }
         }
 
-        // await new Promise(resolve => setTimeout(resolve, 1000));
         UICtrl.editHasBeenConvertedText(playlistName);
         UICtrl.hideLoadingBar();
         UICtrl.updateLoadingBar(0);
@@ -495,20 +468,6 @@ const APPController = (function(UICtrl, APICtrl) {
 
     return {
         init() {
-            // access_token = localStorage.getItem('access_token')
-            // if (access_token == null) {
-            //     window.location.replace("login.html");
-            // } else {
-            //     console.log('App is starting');
-            //     loadPlaylists();
-            // }
-            // if (window.location.search.length > 0) {
-            //     loadInitialPage();
-            // }
-            // if (localStorage.getItem('access_token') != 'undefined') {
-            //     loadInitialPage();
-            //     // window.history.pushState("", "", 'http://127.0.0.1:5500/home.html'); // remove param from url
-            // }
             loadInitialPage();
             console.log('App is starting');
         }
