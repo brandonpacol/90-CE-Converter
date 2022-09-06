@@ -211,7 +211,8 @@ const UIController = (function() {
         welcomeUser: '#welcome-user',
         convertButton: '#convert-button',
         loadingBar: '#loading-bar',
-        loadingBarDiv: '#loading-bar-div'
+        loadingBarDiv: '#loading-bar-div',
+        keepExplicit: '#keep-explicit'
     }
 
     //public methods
@@ -227,7 +228,8 @@ const UIController = (function() {
                 welcomeUser: document.querySelector(DOMElements.welcomeUser),
                 convertButton: document.querySelector(DOMElements.convertButton),
                 loadingBar: document.querySelector(DOMElements.loadingBar),
-                loadingBarDiv: document.querySelector(DOMElements.loadingBarDiv)
+                loadingBarDiv: document.querySelector(DOMElements.loadingBarDiv),
+                keepExplicit: document.querySelector(DOMElements.keepExplicit)
             }
         },
 
@@ -255,7 +257,7 @@ const UIController = (function() {
         },
 
         editHasBeenConvertedText(name) {
-            document.querySelector(DOMElements.selectedPlaylistText).innerHTML = '"' + name + '"has been converted.';
+            document.querySelector(DOMElements.selectedPlaylistText).innerHTML = '"' + name + '" has been converted.';
         },
 
         disableConvertButton() {
@@ -274,6 +276,10 @@ const UIController = (function() {
 
         getPlaylistName(playlist_id) {
             return document.querySelector('#'+playlist_id).querySelector(DOMElements.playlistName).textContent;
+        },
+
+        getExplicit() {
+            return document.querySelector(DOMElements.keepExplicit).checked;
         },
 
         updateLoadingBar(percent) {
@@ -334,7 +340,7 @@ const APPController = (function(UICtrl, APICtrl) {
             if (element.images.length > 0) {
                 UICtrl.createPlaylist(element.images[0].url, element.name, element.id);
             } else {
-                UICtrl.createPlaylist('https://m.media-amazon.com/images/I/71pxGj4RoVS._AC_SL1200_.jpg', element.name, element.id);
+                UICtrl.createPlaylist('https://community.spotify.com/t5/image/serverpage/image-id/25294i2836BD1C1A31BDF2?v=v2', element.name, element.id);
             }
         });
     } 
@@ -411,6 +417,7 @@ const APPController = (function(UICtrl, APICtrl) {
         console.log(search_keywords);
 
         // if songs are explicit, search for clean song
+        let keepExplicit = UICtrl.getExplicit();
         let uris_to_add = [];
         for (let i = 0; i < search_keywords.length; i++) {
             console.log('Searching for song '+ (i+1));
@@ -426,7 +433,7 @@ const APPController = (function(UICtrl, APICtrl) {
                         break;
                     }
                 }
-                if (!found) {
+                if (!found && keepExplicit) {
                     console.log('No clean version found, added explicit version of ' + search_keywords[i].track + '.');
                     uris_to_add.push(search_keywords[i].uri);
                 }
