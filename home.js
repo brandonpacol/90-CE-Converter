@@ -333,6 +333,7 @@ const APPController = (function(UICtrl, APICtrl) {
         if (localStorage.getItem('auth_code') == 'undefined') {
             console.log('ran if auth code');
             code = await getCode();
+            window.history.pushState("", "", 'http://127.0.0.1:5500/home.html'); // remove param from url
         } else {
             console.log('ran else auth code')
             code = localStorage.getItem('auth_code');
@@ -501,13 +502,14 @@ const APPController = (function(UICtrl, APICtrl) {
             //     console.log('App is starting');
             //     loadPlaylists();
             // }
-            if (window.location.search.length > 0) {
-                loadInitialPage();
-            }
+            // if (window.location.search.length > 0) {
+            //     loadInitialPage();
+            // }
             // if (localStorage.getItem('access_token') != 'undefined') {
             //     loadInitialPage();
             //     // window.history.pushState("", "", 'http://127.0.0.1:5500/home.html'); // remove param from url
             // }
+            loadInitialPage();
             console.log('App is starting');
         }
     }
