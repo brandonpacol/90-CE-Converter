@@ -2,7 +2,8 @@ const APIController = (function() {
     
     const clientId = '***REMOVED***';
     const clientSecret = '***REMOVED***';
-    const redirectUri = 'http://127.0.0.1:5500/home.html';
+    // const redirectUri = 'http://127.0.0.1:5500/home.html';
+    const redirectUri = 'https://brandonpacol.github.io/90-CE-Converter/home.html';
     const AUTHORIZE = "https://accounts.spotify.com/authorize";
 
     // private methods
