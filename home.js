@@ -1,28 +1,12 @@
 const APIController = (function() {
     
-    const clientId = '***REMOVED***';
-    const clientSecret = '***REMOVED***';
+    const clientId = localStorage.getItem('client_id');
+    const clientSecret = localStorage.getItem('client_secret');
     // const redirectUri = 'http://127.0.0.1:5500/home.html';
     const redirectUri = 'https://brandonpacol.github.io/90-CE-Converter/home.html';
 
     // private methods
-    const _getToken = async () => {
-
-        const result = await fetch('https://accounts.spotify.com/api/token', {
-            method: 'POST',
-            headers: {
-                'Content-Type' : 'application/x-www-form-urlencoded', 
-                'Authorization' : 'Basic ' + btoa(clientId + ':' + clientSecret)
-            },
-            body: 'grant_type=client_credentials' +
-            '&code=AQD-CffBqZZQWmfaEcqJkZ8lvow8Qz_smzZm4VJSC8jOjuWzbYZLwk3ditxeKH_KdffcPyNdivI5gcaJyaShACoXv6HXMulzROeSutOg7LBlW3A0evf44L0P0C8jb4aS_LiwlJda-QvsrEqu2njB7DeyDKaQYF7lBH1YpQSL8DrI_mlsmQxhIb6vdKc4QXwlTHyAR26Au2p6N6MSj7fQsdObu3ghjMj_f-zBcTIsvVBitKz50UecF6Bd1t3VhEL-xD123D5dyPmh4hJbFrU1FhtfRNLZGP8l833uj4WmNPtALjzvOqbc4nk31y-fipdu_oZoW7DheNeR-EwNFG-4wbr8fJdpsoJ8wxMhMNHfYWYebvqrQG8MkCKDrRcZAgV2V_AGV7BFINdatqjgYChT8ks7_mlJ7Mz7cIuz51vIt9cISiKkI4-Yu45wzw' +
-            '&redirect_uri=' + encodeURI('http://127.0.0.1:5500/home.html')
-        });
-        const data = await result.json();
-        return data.access_token;
-    }
-
-    const _getToken2 = async (code) => {
+    const _getToken = async (code) => {
         body_string = 'grant_type=authorization_code'+
         '&code='+code+
         '&redirect_uri='+encodeURI(redirectUri);
@@ -107,7 +91,7 @@ const APIController = (function() {
             },
             body: JSON.stringify({
                 name : playlistName + ' (90% Clean)',
-                description : 'Created with 90 CE Converter',
+                description : 'Created with 90% Clean Converter',
                 public : false
             })
         });
@@ -140,7 +124,7 @@ const APIController = (function() {
         search_string = artist + ' ' + track;
         query = encodeURIComponent(search_string.slice(0,100));
 
-        const result = await fetch(`https://api.spotify.com/v1/search?q=${query}&type=track&limit=5`, {
+        const result = await fetch(`https://api.spotify.com/v1/search?q=${query}&type=track&limit=4`, {
             method: 'GET',
             headers: { 'Authorization' : 'Bearer ' + token }
         });
@@ -167,11 +151,8 @@ const APIController = (function() {
     }
 
     return {
-        getToken() {
-            return _getToken();
-        },
-        getToken2(code) {
-            return _getToken2(code);
+        getToken(code) {
+            return _getToken(code);
         },
         getPlaylists(token) {
             return _getPlaylists(token);
@@ -236,7 +217,7 @@ const UIController = (function() {
         },
 
         // need method to create a playlist list group item 
-        createPlaylist(img, title, id) {
+        createPlaylist(img, title, id , position) {
             const html = `
             <div class="row mb-2 playlist"  id="p${id}">
                 <div class="col-sm-4 d-flex justify-content-center">
@@ -247,7 +228,11 @@ const UIController = (function() {
                 </div>
             </div>
             `;
-            document.querySelector(DOMElements.divPlaylistList).insertAdjacentHTML('beforeend', html);
+            document.querySelector(DOMElements.divPlaylistList).insertAdjacentHTML(position, html);
+        },
+
+        getPlaylistImage(playlist_id) {
+            return document.querySelector('#'+playlist_id).getElementsByTagName('img')[0].src;
         },
 
         editSelectedPlaylistText(name) {
@@ -321,13 +306,13 @@ const APPController = (function(UICtrl, APICtrl) {
 
         if (localStorage.getItem('auth_code') == 'undefined') {
             code = await getCode();
-            window.history.pushState("", "", 'https://brandonpacol.github.io/90-CE-Converter/home.html');
+            window.history.pushState("", "", 'http://127.0.0.1:5500/home.html');
         } else {
             code = localStorage.getItem('auth_code');
         }
 
         if (localStorage.getItem('access_token') == 'undefined') {
-            token = await APICtrl.getToken2(code);
+            token = await APICtrl.getToken(code);
             UICtrl.storeToken(token);
         } else {
             token = localStorage.getItem('access_token');
@@ -336,7 +321,6 @@ const APPController = (function(UICtrl, APICtrl) {
 
         // gets user
         const user = await APICtrl.getUser(token);
-        // changes welcome username
         UICtrl.editWelcomeUser(user.display_name);
 
         //get the playlists
@@ -345,13 +329,14 @@ const APPController = (function(UICtrl, APICtrl) {
         //populate our playlist list
         playlists.forEach(element => {
             if (element.images.length > 0) {
-                UICtrl.createPlaylist(element.images[0].url, element.name, element.id);
+                UICtrl.createPlaylist(element.images[0].url, element.name, element.id, 'beforeend');
             } else {
-                UICtrl.createPlaylist('https://community.spotify.com/t5/image/serverpage/image-id/25294i2836BD1C1A31BDF2?v=v2', element.name, element.id);
+                UICtrl.createPlaylist('https://community.spotify.com/t5/image/serverpage/image-id/25294i2836BD1C1A31BDF2?v=v2', element.name, element.id, 'beforeend');
             }
         });
-    } 
+    }
 
+    // get auth code
     const getCode = async () => {
         let code = null;
         const queryString = window.location.search;
@@ -389,7 +374,7 @@ const APPController = (function(UICtrl, APICtrl) {
         UICtrl.editSelectedPlaylistText(playlistName);
     })
 
-    //logout button
+    // logout button
     DOMInputs.logoutButton.addEventListener('click', async () => {
         localStorage.setItem('access_token', 'undefined');
         localStorage.setItem('auth_code', 'undefined');
@@ -404,16 +389,15 @@ const APPController = (function(UICtrl, APICtrl) {
         // get token
         token = UICtrl.getStoredToken().token;
 
-        playlistName = UICtrl.getPlaylistName('p' + localStorage.getItem('selected_playlist_id'));
+        let playlistName = UICtrl.getPlaylistName('p' + localStorage.getItem('selected_playlist_id'));
         UICtrl.editIsConvertingText(playlistName);        
 
         // create new playlist bassed on selected playlist name
-        playlistId = localStorage.getItem('selected_playlist_id');
-        playlistName = UICtrl.getPlaylistName('p' + playlistId);
+        let playlistId = localStorage.getItem('selected_playlist_id');
         const newPlaylist = await APICtrl.createPlaylist(token, playlistName);
 
         // get songs from selected playlist
-        search_keywords = [];
+        let search_keywords = [];
         const songs = await APICtrl.getSongs(token, playlistId);
         songs.forEach(element => search_keywords.push({
             artist : element.track.artists[0].name, 
@@ -461,6 +445,8 @@ const APPController = (function(UICtrl, APICtrl) {
             }
         }
 
+        let playlistImage = UICtrl.getPlaylistImage('p' + localStorage.getItem('selected_playlist_id'));
+        UICtrl.createPlaylist(playlistImage, newPlaylist.name, newPlaylist.id, 'afterbegin')
         UICtrl.editHasBeenConvertedText(playlistName);
         UICtrl.hideLoadingBar();
         UICtrl.updateLoadingBar(0);
