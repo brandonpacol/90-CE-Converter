@@ -306,7 +306,7 @@ const APPController = (function(UICtrl, APICtrl) {
 
         if (localStorage.getItem('auth_code') == 'undefined') {
             code = await getCode();
-            window.history.pushState("", "", 'http://127.0.0.1:5500/home.html');
+            window.history.pushState("", "", 'https://brandonpacol.github.io/90-CE-Converter/home.html');
         } else {
             code = localStorage.getItem('auth_code');
         }
