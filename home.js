@@ -3,7 +3,7 @@ const APIController = (function() {
     const clientId = localStorage.getItem('client_id');
     const clientSecret = localStorage.getItem('client_secret');
     // const redirectUri = 'http://127.0.0.1:5500/home.html';
-    const redirectUri = 'https://brandonpacol.github.io/90-CE-Converter/home.html';
+    const redirectUri = 'https://brandonpacol.github.io/90-Clean-Converter/home.html';
 
     // private methods
     const _getToken = async (code) => {
@@ -306,7 +306,7 @@ const APPController = (function(UICtrl, APICtrl) {
 
         if (localStorage.getItem('auth_code') == 'undefined') {
             code = await getCode();
-            window.history.pushState("", "", 'https://brandonpacol.github.io/90-CE-Converter/home.html');
+            window.history.pushState("", "", 'https://brandonpacol.github.io/90-Clean-Converter/home.html');
         } else {
             code = localStorage.getItem('auth_code');
         }
