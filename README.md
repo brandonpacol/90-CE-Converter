@@ -34,6 +34,9 @@ In a real application, these steps would not be needed as the Client ID and Clie
 14. Press convert.
 15. You should see the newly converted playlist in your account!
 
+## Demo
+https://user-images.githubusercontent.com/79070027/192351392-064f35b3-7be5-40bb-a2a1-e9cdc3e8e1f5.mp4
+
 ## Sources
 - Video for that helped with Spotify authentication (https://www.youtube.com/watch?v=1vR3m0HupGI&t=1140s)
 - Video for helping me learn how to use the Spotify API with Javascript (https://www.youtube.com/watch?v=SbelQW2JaDQ&t=62s)
