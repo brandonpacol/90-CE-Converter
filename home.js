@@ -393,7 +393,7 @@ const APPController = (function(UICtrl, APICtrl) {
         UICtrl.editIsConvertingText(playlistName);        
 
 
-        let keepExplicit = UICtrl.getExplicit();
+        let keepExplicit = !(UICtrl.getExplicit());
         let percentageString = '';
         if (keepExplicit) {
             percentageString = ' (90% Clean)'
