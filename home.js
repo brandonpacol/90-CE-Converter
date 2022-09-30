@@ -394,7 +394,7 @@ const APPController = (function(UICtrl, APICtrl) {
 
 
         let keepExplicit = UICtrl.getExplicit();
-        percentageString = '';
+        let percentageString = '';
         if (keepExplicit) {
             percentageString = ' (90% Clean)'
         } else {
