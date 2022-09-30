@@ -82,7 +82,7 @@ const APIController = (function() {
         return data;
     }
 
-    const _createPlaylist = async (token, playlistName) => {
+    const _createPlaylist = async (token, playlistName, percentageString) => {
 
         const result = await fetch(`https://api.spotify.com/v1/me/playlists`, {
             method: 'POST',
@@ -90,7 +90,7 @@ const APIController = (function() {
                 'Authorization' : 'Bearer ' + token
             },
             body: JSON.stringify({
-                name : playlistName + ' (90% Clean)',
+                name : playlistName + percentageString,
                 description : 'Created with 90% Clean Converter',
                 public : false
             })
@@ -160,8 +160,8 @@ const APIController = (function() {
         getPlaylist(token, playlistId) {
             return _getPlaylist(token, playlistId);
         },
-        createPlaylist(token, name) {
-            return _createPlaylist(token, name);
+        createPlaylist(token, name, percentageString) {
+            return _createPlaylist(token, name, percentageString);
         },
         getSongs(token, playlistId) {
             return _getSongs(token, playlistId)
@@ -392,9 +392,17 @@ const APPController = (function(UICtrl, APICtrl) {
         let playlistName = UICtrl.getPlaylistName('p' + localStorage.getItem('selected_playlist_id'));
         UICtrl.editIsConvertingText(playlistName);        
 
+
+        let keepExplicit = UICtrl.getExplicit();
+        percentageString = '';
+        if (keepExplicit) {
+            percentageString = ' (90% Clean)'
+        } else {
+            percentageString = ' (100% Clean)'
+        }
         // create new playlist bassed on selected playlist name
         let playlistId = localStorage.getItem('selected_playlist_id');
-        const newPlaylist = await APICtrl.createPlaylist(token, playlistName);
+        const newPlaylist = await APICtrl.createPlaylist(token, playlistName, percentageString);
 
         // get songs from selected playlist
         let search_keywords = [];
@@ -408,7 +416,6 @@ const APPController = (function(UICtrl, APICtrl) {
 
 
         // if songs are explicit, search for clean song
-        let keepExplicit = UICtrl.getExplicit();
         let uris_to_add = [];
         for (let i = 0; i < search_keywords.length; i++) {
             console.log('Searching for song '+ (i+1));
@@ -462,5 +469,4 @@ const APPController = (function(UICtrl, APICtrl) {
 
 })(UIController, APIController);
 
-// will need to call a method to load the genres on page load
 APPController.init();

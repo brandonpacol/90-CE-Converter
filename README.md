@@ -1,5 +1,6 @@
 # 90% Clean Converter
 Demo website that converts explicit playlists to a 90% (or mostly) clean playlist on Spotify!
+Go to https://brandonpacol.github.io/90-Clean-Converter/ to test it out!
 
 ## Introduction
 Turning off explicit content in the Spotify app makes explicit songs unplayable across the application. For users who have playlists that only contain explicit music, they would not even have the ability to play a clean version of their playlist. This is where the 90% Clean Converter comes to help!
