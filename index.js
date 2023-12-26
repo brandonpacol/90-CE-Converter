@@ -5,7 +5,7 @@ const express = require('express');
 const session = require('express-session');
 const app = express();
 const port = process.env.PORT || 5500;
-const url = `${process.env.NODE_ENV === 'production' ? "https" : "http" }://${process.env.HOST_NAME}:${port}`
+const url = `${process.env.NODE_ENV === 'production' ? "https" : "http" }://${process.env.HOST_NAME}${process.env.NODE_ENV === 'production' ? "" : ":" + port }`
 
 var SpotifyWebApi = require('spotify-web-api-node');
 var bodyParser = require('body-parser');
