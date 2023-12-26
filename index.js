@@ -100,8 +100,6 @@ app.get('/callback', async (req, res) => {
     try {
 
         const code = req.query.code;
-        console.log("CALLBACK");
-        console.log(code);
 
         if (code) {
             const spotifyApi = new SpotifyWebApi({
@@ -113,11 +111,13 @@ app.get('/callback', async (req, res) => {
             
             const result = await spotifyApi.authorizationCodeGrant(code);
             const data = result.body;
+            console.log(data);
             const access_token = data.access_token;
             const refresh_token = data.refresh_token;
             spotifyApi.setAccessToken(access_token);
             spotifyApi.setRefreshToken(refresh_token);
     
+            console.log(req.sessionID);
             storeSpotifyObject(req.sessionID, spotifyApi);
     
             res.redirect('/home');
