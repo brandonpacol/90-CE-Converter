@@ -69,10 +69,9 @@ app.get('/', (req, res) => {
 })
 
 app.get('/home', (req, res) => {
-    console.log("HOME")
+    console.log("HOME");
+    console.log(req.sessionID);
     const spotifyApi = getSpotifyObject(req.sessionID);
-    console.log(spotifyApi);
-    console.log(spotifyApi.getAccessToken());
     if (spotifyApi && spotifyApi.getAccessToken() != null) {
         res.set('Cache-Control', 'no-store')
         res.sendFile(__dirname + '/public/home.html');
