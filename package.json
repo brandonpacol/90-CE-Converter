@@ -1,0 +1,31 @@
+{
+  "name": "90-ce-converter",
+  "version": "1.0.0",
+  "description": "Converts explicit playlists to a 90% or 100% clean playlist on Spotify!",
+  "main": "index.js",
+  "scripts": {
+    "dev": "nodemon index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/brandonpacol/90-Clean-Converter.git"
+  },
+  "author": "Brandon Pacol",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/brandonpacol/90-Clean-Converter/issues"
+  },
+  "homepage": "https://github.com/brandonpacol/90-Clean-Converter#readme",
+  "dependencies": {
+    "body-parser": "^1.20.0",
+    "bootstrap": "^5.3.2",
+    "express": "^4.18.1",
+    "express-session": "^1.17.3",
+    "node-fetch": "^2.6.7",
+    "spotify-web-api-node": "^5.0.2"
+  },
+  "devDependencies": {
+    "dotenv": "^16.0.3",
+    "nodemon": "^2.0.20"
+  }
+}
