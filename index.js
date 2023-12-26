@@ -22,7 +22,7 @@ app.use(session({
     cookie: { httpOnly: true, secure: process.env.NODE_ENV === 'production' } // Set to true if using HTTPS
 }));
 
-app.listen(port, process.env.HOST_NAME, () => {
+app.listen(port, () => {
     console.log(`App listening on ${url}`);
 });
 
