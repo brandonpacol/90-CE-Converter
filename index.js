@@ -101,7 +101,7 @@ app.get('/callback', async (req, res) => {
 
         const code = req.query.code;
         console.log("CALLBACK");
-        console.log(req);
+        console.log(code);
 
         if (code) {
             const spotifyApi = new SpotifyWebApi({
