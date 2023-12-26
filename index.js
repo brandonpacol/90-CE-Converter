@@ -5,7 +5,7 @@ const express = require('express');
 const session = require('express-session');
 const app = express();
 const port = process.env.PORT || 5500;
-//const url = `http://${process.env.HOST_NAME}:${port}`
+const url = `${process.env.NODE_ENV === 'production' ? "https" : "http" }://${process.env.HOST_NAME}:${port}`
 
 var SpotifyWebApi = require('spotify-web-api-node');
 var bodyParser = require('body-parser');
@@ -19,11 +19,11 @@ app.use(session({
     secret: generateRandomString(16), // Use a long, random string here
     resave: false,
     saveUninitialized: true,
-    cookie: { httpOnly: true, secure: false } // Set to true if using HTTPS
+    cookie: { httpOnly: true, secure: process.env.NODE_ENV === 'production' } // Set to true if using HTTPS
 }));
 
-app.listen(port, () => {
-    console.log(`App listening on port ${port}`)
+app.listen(port, process.env.HOST_NAME, () => {
+    console.log(`App listening on ${url}`);
 });
 
 const client_id = process.env.CLIENT_ID;
