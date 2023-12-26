@@ -69,7 +69,10 @@ app.get('/', (req, res) => {
 })
 
 app.get('/home', (req, res) => {
+    console.log("HOME")
     const spotifyApi = getSpotifyObject(req.sessionID);
+    console.log(spotifyApi);
+    console.log(spotifyApi.getAccessToken());
     if (spotifyApi && spotifyApi.getAccessToken() != null) {
         res.set('Cache-Control', 'no-store')
         res.sendFile(__dirname + '/public/home.html');
@@ -98,7 +101,7 @@ app.get('/login', (req, res) => {
 
 app.get('/callback', async (req, res) => {
     try {
-
+        console.log("CALLBACK");
         const code = req.query.code;
 
         if (code) {
@@ -111,12 +114,10 @@ app.get('/callback', async (req, res) => {
             
             const result = await spotifyApi.authorizationCodeGrant(code);
             const data = result.body;
-            console.log(data);
             const access_token = data.access_token;
             const refresh_token = data.refresh_token;
             spotifyApi.setAccessToken(access_token);
             spotifyApi.setRefreshToken(refresh_token);
-    
             console.log(req.sessionID);
             storeSpotifyObject(req.sessionID, spotifyApi);
     
