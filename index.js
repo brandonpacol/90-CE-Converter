@@ -19,7 +19,7 @@ app.use(session({
     secret: generateRandomString(16), // Use a long, random string here
     resave: false,
     saveUninitialized: true,
-    cookie: { httpOnly: true, secure: process.env.NODE_ENV === 'production' } // Set to true if using HTTPS
+    cookie: { httpOnly: true, secure: false } // Set to true if using HTTPS
 }));
 
 app.listen(port, () => {
