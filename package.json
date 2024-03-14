@@ -4,6 +4,7 @@
   "description": "Converts explicit playlists to a 90% or 100% clean playlist on Spotify!",
   "main": "index.js",
   "scripts": {
+    "start": "node index.js",
     "dev": "nodemon index.js"
   },
   "repository": {
